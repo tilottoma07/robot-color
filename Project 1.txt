@@ -1,0 +1,103 @@
+import csv
+import pprint
+
+def read_csv(): # This function has been called to read the file specifically the .csv and also to open the text file where the resultant data will be written.
+    try:
+        filename= input("Enter a Pilot file name: ")
+        file = open(filename+'.csv')
+        writefile=open(filename+'report.txt','w')# File opened in write mode to enter the data
+        writefile.close()
+        return csv.reader(file),file,filename
+    except:   # an except condition if the wrong type of file is entered
+        print('Error!!')
+        exit()
+
+def Average(reader,file_handle,writefilename): # This function is called to calculate the Average of the First Name, Last Name & and all the three field data and also to write in the text file as well
+
+    writefile=open(writefilename+'report.txt','a') # File opened in an append mode to enter the data, so that only the data can be entered withhout changing the previous data.
+    print('Field Test Report:')
+    writefile.write('Field Test Report:\n')
+
+    First_name=0
+    Last_name=0
+    FieldtestData_1=0
+    FieldtestData_2=0
+    FieldtestData_3=0
+    rowlen=0
+    file_handle.seek(0) # Function to start it from the "0" line of the file again after reading line by line
+    next(reader) # this function is called to skip the header line otherwise it will call it as strings and create error
+    for row in reader: # For loop to calculate the length of the each row and the data of each field test data
+        First_name += len(row[1])
+        Last_name += len(row[2])
+        FieldtestData_1 += int(row[6])
+        FieldtestData_2 += int(row[7])
+        FieldtestData_3 += int(row[8])
+        rowlen+=1
+    # Print all the calculated value and write the results in the .txt file.
+    print('Average first name length:',int(First_name/rowlen))
+    writefile.write('Average first name length: '+str(int(First_name/rowlen))+'\n')
+    print('Average last name length:',int(Last_name/rowlen))
+    writefile.write('Average last name length: '+str(int(Last_name/rowlen))+'\n')
+    print('Average field test 1 score',int(FieldtestData_1/rowlen))
+    writefile.write('Average field test 1 score '+str(int(FieldtestData_1/rowlen))+'\n')
+    print('Average field test 2 score',int(FieldtestData_2/rowlen))
+    writefile.write('Average field test 2 score '+str(int(FieldtestData_2/rowlen))+'\n')
+    print('Average field test 3 score',int (FieldtestData_3/rowlen))
+    writefile.write('Average field test 3 score '+str(int(FieldtestData_3/rowlen))+'\n')
+
+    writefile.close()
+
+
+def BestPilot(reader,file_handle,writefilename):# This function is called to find out the best pilot data
+    writefile=open(writefilename+'report.txt','a')
+
+    print('Best pilot data:')
+    writefile.write('Best pilot data:\n')
+
+    file_handle.seek(0)
+    best_data=[]
+    best_data_id=[]
+
+    next(reader)
+    for row in reader:# For loop to calculate the total average for the all three field test data
+        best_data.append(int((int(row[6])+int(row[7])+int(row[8]))/3)) # Average of filed text data (3 field test data)
+        m = max(best_data) # Extract the max value from them
+        best_data_id=[i+1 for i, j in enumerate(best_data) if j == m] # look for the corresponding index(name, color, etc. of the robot) in line with the max average data
+
+    file_handle.seek(0)
+    for idx, row in enumerate(reader):
+        for x in best_data_id:
+            if idx == x:# if the corresponding index and the searched index is same it will print the information of the best robot/pilot data
+                print(row[1]+' '+row[2]+' serial '+row[4]+' '+row[5]+' with an average field test score of', int((int(row[6])+int(row[7])+int(row[8]))/3))
+                writefile.write(row[1]+' '+row[2]+' serial '+row[4]+' '+row[5]+' with an average field test score of '+ str(int((int(row[6])+int(row[7])+int(row[8]))/3))+'\n')
+    writefile.close()
+
+
+def robot_color_histogram(reader,file_handle,writefilename):#This function is used to get the color histogram of each robot
+    writefile=open(writefilename+'report.txt','a')
+    print('Colors Histogram')
+    writefile.write('Colors Histogram\n')
+
+    color_histogram={} #A dictionary was opened to make the histogram of color of robots
+    file_handle.seek(0)
+    next(reader)
+    for row in reader:#A for loop was used to make the histogram with a "if else" condition within it so that the repetition can be handled
+        if row[5] in color_histogram.keys():
+            color_histogram[row[5]]= color_histogram[row[5]]+1
+        else:
+            color_histogram[row[5]]= 1
+
+    pprint.pprint(color_histogram)
+
+    for key,item in sorted(color_histogram.items()):# the color was sorted alphabetically
+        writefile.write("'"+key+"'"+':'+ str(item) + ',\n')
+    writefile.close()
+
+
+def main(): # closing of the all function in the end
+    reader,file_handle,writefilename=read_csv()
+    Average(reader, file_handle, writefilename)
+    BestPilot(reader, file_handle, writefilename)
+    robot_color_histogram(reader, file_handle, writefilename)
+main()
+
